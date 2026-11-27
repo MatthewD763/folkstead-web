@@ -48,7 +48,14 @@ window.FOLKSTEAD_WORDS = {
     }
   ],
 
-  // DRAFT: the button that closes the questions, and the thanks after the last one.
+  // DRAFT: the button that closes the questions before they are all answered.
   back: 'Back to the game',
-  thanks: 'Thank you. That helps a great deal. Your stars are kept on this device: come back any time.'
+
+  // DRAFT: the last card, after the third answer. It is an ending: the thanks,
+  // the line saying the player is done and may leave, and the quiet button for
+  // one who would rather go on. (Until this, the last card's only button led
+  // back to the game, and the user, trying it, could not see how to leave.)
+  thanks: 'Thank you. That helps a great deal.',
+  leave: 'That is all. You can close this page now: your stars are kept on this device, and the same link brings you back to them.',
+  keep: 'Keep playing'
 };

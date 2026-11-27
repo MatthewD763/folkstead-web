@@ -687,6 +687,9 @@
     thanks.hidden = true;
     thanks.id = 'fs-thanks';
     thanks.appendChild(make('p', 'fs-text', word('thanks')));
+    var leave = make('p', 'fs-text', word('leave'));
+    leave.id = 'fs-leave';
+    thanks.appendChild(leave);
     card.appendChild(thanks);
     ui.steps.push(thanks);
     var dots = make('div', 'fs-dots');
@@ -736,7 +739,10 @@
       ui.dots[j].className = 'fs-dot' + (j === index ? ' fs-on' : (j < index ? ' fs-done' : ''));
     }
     ui.dotsRow.hidden = thanking;
-    ui.back.className = 'fs-button ' + (thanking ? 'fs-main' : 'fs-quiet');
+    // The last card is an ending: it says the player may leave, and going on
+    // playing is the quiet choice there, not the main one.
+    ui.back.className = 'fs-button fs-quiet';
+    ui.back.textContent = word(thanking ? 'keep' : 'back');
     if (thanking) {
       ui.panel.removeAttribute('aria-labelledby');
       ui.panel.setAttribute('aria-label', word('thanks'));
