@@ -14,6 +14,27 @@
   var config = window.FOLKSTEAD_CONFIG || {};
   var PREFIX = 'folkstead.';
   var NAME_MAX = 24;
+  // The build this page came with, written into the page as it is built
+  // (November 27): shown small on the welcome, so that a tester's picture says
+  // which build they had, and used to fetch the game's files afresh.
+  var BUILD = typeof window.FOLKSTEAD_BUILD === 'string' ? window.FOLKSTEAD_BUILD : '';
+  var BUILD_TOKEN = BUILD.replace(/[^0-9A-Za-z]+/g, '-').replace(/^-+|-+$/g, '');
+
+  // A browser may keep an old copy of the game's two large files by name. With
+  // the build added to their addresses, a new build is always fetched afresh.
+  if (BUILD_TOKEN && typeof window.fetch === 'function') {
+    var plainFetch = window.fetch;
+    window.fetch = function (input, init) {
+      try {
+        if (typeof input === 'string' && /(^|\/)index\.(pck|wasm)$/.test(input)) {
+          input = input + '?v=' + BUILD_TOKEN;
+        }
+      } catch (error) {
+        // The address goes as it came.
+      }
+      return plainFetch.call(this, input, init);
+    };
+  }
   // One send stays well under what the sheet takes (200,000 characters, 400
   // lines), a beacon under the 64 KB a browser allows, and a single line that
   // is longer still is kept only as its type and number.
@@ -627,6 +648,12 @@
     var barFill = make('div', 'fs-bar-fill');
     bar.appendChild(barFill);
     card.appendChild(bar);
+    if (BUILD) {
+      // Which build this is, small, for a tester's picture to show.
+      var label = make('p', 'fs-build', (word('build') ? word('build') + ' ' : '') + BUILD);
+      label.id = 'fs-build';
+      card.appendChild(label);
+    }
     scroll.appendChild(card);
     layer.appendChild(scroll);
     shield(layer);
@@ -712,8 +739,10 @@
     scroll.appendChild(card);
     layer.appendChild(scroll);
     // A press beside the card closes it, as beside the game's own menu.
+    // Not beside the last card, though: that one is an ending, and a stray
+    // press must not throw the player back into the game.
     scroll.addEventListener('click', function (event) {
-      if (event.target === scroll && !tooSoon()) {
+      if (event.target === scroll && !tooSoon() && step < questions().length) {
         closePanel();
       }
     });
@@ -743,6 +772,12 @@
     // playing is the quiet choice there, not the main one.
     ui.back.className = 'fs-button fs-quiet';
     ui.back.textContent = word(thanking ? 'keep' : 'back');
+    // And it covers the game, as the welcome does, so that it reads as the end.
+    if (thanking) {
+      ui.panel.classList.add('fs-ended');
+    } else {
+      ui.panel.classList.remove('fs-ended');
+    }
     if (thanking) {
       ui.panel.removeAttribute('aria-labelledby');
       ui.panel.setAttribute('aria-label', word('thanks'));
@@ -888,10 +923,132 @@
     focusQuietly(ui.play);
     watchEngine();
     watcher = setInterval(watchEngine, 200);
+    if (debugOn) {
+      debugBox = make('pre', 'fs-debug');
+      debugBox.id = 'fs-debug';
+      document.body.appendChild(debugBox);
+      debugShow();
+      setInterval(debugShow, 1000);
+    }
+    checkFresh();
     if (ready) {
       ready = false;
       gameReady();
     }
+  }
+
+  // Is this page the newest build? Asked once as it opens, while the welcome
+  // is still up (November 27): a browser, a phone's above all, may show a copy
+  // it kept, and that old copy then gives way to the new one. It reloads at
+  // most once for each build, and never once Play has been pressed.
+  function checkFresh() {
+    if (!BUILD || typeof window.fetch !== 'function') {
+      return;
+    }
+    try {
+      window.fetch('build.txt?x=' + randomHex(8), { cache: 'no-store', credentials: 'omit' }).then(function (response) {
+        return response.ok ? response.text() : '';
+      }).then(function (text) {
+        var newest = String(text || '').replace(/\s+/g, ' ').replace(/^ | $/g, '');
+        if (!newest || newest.length > 80 || newest === BUILD || !shown.welcome || played) {
+          return;
+        }
+        var token = newest.replace(/[^0-9A-Za-z]+/g, '-');
+        var tried = '';
+        try {
+          tried = window.sessionStorage.getItem(PREFIX + 'fresh') || '';
+          if (tried === token) {
+            return;
+          }
+          window.sessionStorage.setItem(PREFIX + 'fresh', token);
+        } catch (error) {
+          // With nowhere to note that it was tried, it is not tried at all.
+          return;
+        }
+        var url = new URL(window.location.href);
+        url.searchParams.set('b', token);
+        window.location.replace(url.toString());
+      }).catch(function () {
+        // No answer: the page stays as it is.
+      });
+    } catch (error) {
+      // The page stays as it is.
+    }
+  }
+
+  // --- A look inside, for finding a fault (November 27) ----------------------
+  // With ?debug=1 in the address, a small box at the top shows what the page
+  // and the game hear when the screen is pressed, for a picture to be sent
+  // back. It takes no presses itself. Made when no tap reached the game on the
+  // user's iPhone and nothing here could show why.
+  var debugOn = /[?&]debug(=1|=true)?(&|$)/.test(String(window.location.search || ''));
+  var debugBox = null;
+  var debugLines = [];
+  var debugAlive = '';
+
+  function describeElement(element) {
+    if (!element || !element.tagName) {
+      return 'none';
+    }
+    var name = String(element.tagName).toLowerCase() + (element.id ? '#' + element.id : '');
+    if (!element.id && typeof element.className === 'string' && element.className) {
+      name += '.' + element.className.split(' ')[0];
+    }
+    return name;
+  }
+
+  function debugShow() {
+    if (!debugBox) {
+      return;
+    }
+    var element = canvas();
+    var rect = element ? element.getBoundingClientRect() : null;
+    var head = [
+      'build ' + (BUILD || 'none') + ' | ' + who.where,
+      'game ' + (ready ? 'up' : 'not up') + (debugAlive ? ' | ' + debugAlive : ''),
+      'welcome ' + (shown.welcome ? 'up' : 'gone') + ', questions ' + (shown.panel ? 'up' : 'gone') + ' | keys go to ' + describeElement(document.activeElement),
+      'canvas ' + (rect ? 'at ' + Math.round(rect.left) + ',' + Math.round(rect.top) + ' size ' + Math.round(rect.width) + 'x' + Math.round(rect.height) + ' drawn ' + element.width + 'x' + element.height : 'none')
+    ];
+    debugBox.textContent = head.concat(debugLines).join('\n');
+  }
+
+  function debugNote(text) {
+    if (!debugOn) {
+      return;
+    }
+    debugLines.push(since().toFixed(1) + ' ' + text);
+    if (debugLines.length > 14) {
+      debugLines.shift();
+    }
+    debugShow();
+  }
+
+  if (debugOn) {
+    // The game looks for this as it starts, and then says what it hears.
+    window.FOLKSTEAD_DEBUG = true;
+    window.folksteadDebug = function (text) {
+      text = String(text);
+      if (text.indexOf('alive') === 0) {
+        debugAlive = text;
+        debugShow();
+      } else {
+        debugNote('GAME ' + text);
+      }
+    };
+    ['touchstart', 'touchend', 'touchcancel', 'pointerdown', 'pointerup', 'mousedown', 'mouseup', 'click'].forEach(function (type) {
+      window.addEventListener(type, function (event) {
+        var touch = event.changedTouches && event.changedTouches[0];
+        var point = touch || event;
+        var top = null;
+        try {
+          top = document.elementFromPoint(point.clientX, point.clientY);
+        } catch (error) {
+          top = null;
+        }
+        var id = touch ? ' finger=' + touch.identifier : (event.pointerId !== undefined ? ' pointer=' + event.pointerId : '');
+        debugNote(type + id + ' on ' + describeElement(event.target) + ', topmost ' + describeElement(top));
+      }, { capture: true, passive: true });
+    });
   }
 
   if (document.readyState === 'loading') {

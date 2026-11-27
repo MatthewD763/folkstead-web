@@ -320,3 +320,37 @@
     opacity: 0.5;
   }
 }
+
+/* Which build this is, small, under the welcome's button (November 27). */
+.fs-build {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.3;
+  color: #8a949c;
+  text-align: center;
+}
+
+/* The last card of the questions is an ending: it covers the game, as the
+   welcome does (November 27). */
+.fs-panel.fs-ended {
+  background: #2f7f96;
+}
+
+/* The look inside, with ?debug=1 in the address (November 27). It takes no
+   presses: whatever is under it gets them. */
+.fs-debug {
+  position: fixed;
+  top: 0;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  margin: 0;
+  padding: 6px 8px;
+  font: 10px/1.25 ui-monospace, Menlo, Consolas, monospace;
+  color: #ffffff;
+  background: rgba(0, 0, 0, 0.72);
+  pointer-events: none;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

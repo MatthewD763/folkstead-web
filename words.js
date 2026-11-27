@@ -57,5 +57,8 @@ window.FOLKSTEAD_WORDS = {
   // back to the game, and the user, trying it, could not see how to leave.)
   thanks: 'Thank you. That helps a great deal.',
   leave: 'That is all. You can close this page now: your stars are kept on this device, and the same link brings you back to them.',
-  keep: 'Keep playing'
+  keep: 'Keep playing',
+
+  // DRAFT: the small label before the build's date and number, under Play.
+  build: 'Test build'
 };
