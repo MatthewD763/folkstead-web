@@ -1,0 +1,322 @@
+/* The page around Folkstead's web build: the welcome, the tab and the three
+   questions (November 27, 2026). Every class starts with fs-, so that none
+   meets the engine's own page. The colors are the game's: its water, its
+   cards, its green button and its dark text, and the dimming of its menu. */
+
+.fs-layer,
+.fs-tab {
+  box-sizing: border-box;
+  font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fs-layer *,
+.fs-layer *::before,
+.fs-layer *::after {
+  box-sizing: border-box;
+}
+
+.fs-layer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1001;
+  color: #22313f;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.fs-welcome {
+  background: #2f7f96;
+  z-index: 1002;
+}
+
+.fs-panel {
+  background: rgba(0, 14, 33, 0.5);
+  z-index: 1003;
+}
+
+/* Fading out, and still taking presses until it has gone. */
+.fs-layer.fs-leaving {
+  opacity: 0;
+}
+
+.fs-layer[hidden],
+.fs-tab[hidden],
+.fs-layer [hidden] {
+  display: none !important;
+}
+
+/* The card is centered, and scrolls when the screen is too short for it. The
+   engine's page forbids panning; here a finger may scroll up and down. */
+.fs-scroll {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  padding: 16px;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+
+.fs-card {
+  margin: auto;
+  width: 100%;
+  max-width: 440px;
+  padding: 24px 22px 22px;
+  border-radius: 24px;
+  background: #fffdf4;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.14), 0 12px 32px rgba(0, 0, 0, 0.22);
+}
+
+.fs-title {
+  margin: 0 0 14px;
+  font-size: 34px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.fs-hello {
+  margin: -6px 0 14px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.fs-text {
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.fs-note {
+  margin: 16px 0 20px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: #4e5c69;
+}
+
+.fs-button {
+  display: block;
+  width: 100%;
+  min-height: 52px;
+  margin: 0;
+  padding: 10px 18px;
+  border: 2px solid #bdc0be;
+  border-radius: 26px;
+  background: #ffffff;
+  color: #22313f;
+  font: inherit;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.fs-button:active {
+  transform: translateY(2px);
+  box-shadow: none;
+}
+
+.fs-button:focus {
+  outline: none;
+}
+
+.fs-button:focus-visible {
+  outline: 3px solid #f2b632;
+  outline-offset: 3px;
+}
+
+.fs-main {
+  border-color: #2f9e61;
+  background: #2f9e61;
+  color: #ffffff;
+  box-shadow: 0 4px 0 #237a4b;
+}
+
+.fs-main.fs-waiting {
+  border-color: #8fbfa3;
+  background: #8fbfa3;
+  box-shadow: none;
+  cursor: progress;
+}
+
+.fs-quiet {
+  min-height: 48px;
+  border-color: transparent;
+  background: transparent;
+  color: #2f6f87;
+  font-size: 17px;
+  box-shadow: none;
+}
+
+@media (hover: hover) {
+  .fs-main:hover {
+    border-color: #2a9058;
+    background: #2a9058;
+  }
+
+  .fs-main.fs-waiting:hover {
+    border-color: #8fbfa3;
+    background: #8fbfa3;
+  }
+
+  .fs-choice:hover {
+    background: #f3f6ef;
+  }
+
+  .fs-quiet:hover {
+    background: #f3f6ef;
+  }
+}
+
+/* The engine's progress, shown only once Play has been pressed. */
+.fs-bar {
+  height: 6px;
+  margin: 14px 8px 0;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #e6e8e2;
+}
+
+.fs-bar-fill {
+  width: 0;
+  height: 100%;
+  border-radius: 3px;
+  background: #2f9e61;
+  transition: width 0.3s ease;
+}
+
+.fs-bar.fs-unknown .fs-bar-fill {
+  width: 35%;
+  animation: fs-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes fs-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.fs-ask {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.fs-choice {
+  min-height: 48px;
+  font-size: 18px;
+}
+
+.fs-choice + .fs-choice {
+  margin-top: 10px;
+}
+
+.fs-thanks .fs-text {
+  margin: 4px 0 20px;
+  font-size: 19px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.fs-dots {
+  display: flex;
+  justify-content: center;
+  margin: 18px 0 10px;
+}
+
+.fs-dot {
+  width: 8px;
+  height: 8px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background: #d5d8d3;
+}
+
+.fs-dot.fs-done {
+  background: #9aa4ad;
+}
+
+.fs-dot.fs-on {
+  background: #22313f;
+}
+
+/* The tab that opens the questions: small, half-transparent, in the bottom
+   left corner, where the game keeps none of its buttons in either shape. */
+.fs-tab {
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  left: calc(10px + env(safe-area-inset-left));
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  z-index: 1001;
+  min-width: 64px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 16px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 22px;
+  background: rgba(34, 49, 63, 0.55);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 40px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.fs-tab:focus {
+  outline: none;
+}
+
+.fs-tab:focus-visible {
+  outline: 3px solid #f2b632;
+  outline-offset: 2px;
+}
+
+@media (hover: hover) {
+  .fs-tab:hover {
+    background: rgba(34, 49, 63, 0.85);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-layer {
+    transition: none;
+  }
+
+  .fs-bar.fs-unknown .fs-bar-fill {
+    animation: none;
+    width: 100%;
+    opacity: 0.5;
+  }
+}
